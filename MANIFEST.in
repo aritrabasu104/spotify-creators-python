@@ -1,0 +1,4 @@
+include LICENSE README.md
+recursive-include docs *.md *.yml
+recursive-include examples *.py
+recursive-include src/spotify_creators *.py py.typed

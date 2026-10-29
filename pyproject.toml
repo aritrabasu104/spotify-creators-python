@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spotify-creators-client"
+version = "0.1.0"
+description = "An independent Python client for Spotify Creators APIs"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = []
+keywords = ["spotify", "creators", "podcast", "api", "oauth", "pkce"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.optional-dependencies]
+dev = ["build>=1.2", "twine>=6"]
+
+[project.urls]
+Homepage = "https://github.com/aritrabasu104/spotify-creators-python"
+Documentation = "https://aritrabasu104.github.io/spotify-creators-python/"
+Repository = "https://github.com/aritrabasu104/spotify-creators-python"
+Issues = "https://github.com/aritrabasu104/spotify-creators-python/issues"
+
+[project.scripts]
+spotify-creators = "spotify_creators.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["spotify_creators*"]
+
+[tool.setuptools.package-data]
+spotify_creators = ["py.typed"]

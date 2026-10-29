@@ -1,0 +1,8 @@
+title: Spotify Creators Client
+description: An independent Python client for Spotify Creators APIs
+theme: jekyll-theme-minimal
+baseurl: /spotify-creators-python
+url: https://aritrabasu104.github.io
+show_downloads: false
+exclude:
+  - README.md
