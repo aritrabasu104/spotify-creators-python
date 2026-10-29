@@ -109,6 +109,28 @@ class AuthClient:
         self.transport = transport or HttpTransport()
         self.expected_email = expected_email
 
+    def login_with_browser(self, browser, attempt, *, before_dispatch,
+                           on_authenticated=None, timeout=300):
+        """One explicit PKCE login; close only its owned tab before returning.
+
+        The application must first reuse/refresh its existing session. This
+        method never reads browser cookies or chooses a browser profile.
+        Persist the returned pair through ``on_authenticated`` before cleanup,
+        and release it for API use only after this method returns successfully.
+        """
+        if type(timeout) not in (int, float) or not 0 < timeout <= 1800:
+            raise ValueError("Authentication timeout must be between 0 and 1800 seconds")
+        tab = browser.open(attempt.authorize_url)
+        try:
+            callback = tab.wait_for_callback(attempt.redirect_uri, timeout=timeout)
+            session = self.exchange(attempt, callback, before_dispatch=before_dispatch)
+            if on_authenticated is not None:
+                on_authenticated(session)
+            self.verify(session)
+            return session
+        finally:
+            tab.close()
+
     def exchange(self, attempt, callback_url, *, before_dispatch):
         code = attempt.callback_code(callback_url)
         before_dispatch({"kind": "spotify_pkce_exchange", "client_id": attempt.client_id})

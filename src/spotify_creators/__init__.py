@@ -10,7 +10,7 @@ from .tasks import CreatorsTasks
 from .protocol import web_episode_id
 from .concurrency import DEFAULT_MAX_PARALLEL_UPLOADS, SessionManager, UploadPool, UploadResult
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 
 class Client(SpotifyClient):

@@ -16,7 +16,7 @@ access to these interfaces. Endpoint compatibility may change.
 ## Install
 
 ```sh
-python -m pip install "spotify-creators-client @ git+https://github.com/aritrabasu104/spotify-creators-python.git@v0.2.1"
+python -m pip install "spotify-creators-client @ git+https://github.com/aritrabasu104/spotify-creators-python.git@v0.3.0"
 ```
 
 This installs from GitHub. The project is not currently published on PyPI.
@@ -47,6 +47,22 @@ for show in client.all_shows()["showsForUser"]["shows"]:
 
 `expires_at` is the token's actual Unix expiry, not an assumed lifetime.
 See the [OAuth guide](docs/authentication.md) for PKCE and refresh.
+
+## Interactive login lifecycle
+
+Reuse the current token pair and refresh through the API before considering
+browser sign-in. `AuthClient.login_with_browser(browser, attempt,
+before_dispatch=..., on_authenticated=...)` supports one explicit PKCE login
+through a caller-selected browser adapter. It opens one temporary tab, validates
+the exact callback state and account, and closes that tab before returning.
+The adapter implements `open(url)`, `wait_for_callback(expected_url, timeout=...)`
+and `close()`; existing user and service tabs are never claimed or closed.
+
+Use `on_authenticated` to preserve the returned pair securely before verification
+or tab cleanup can fail. Keep that pair unavailable for ordinary API work until
+the login method returns successfully. The application retains its original
+credential lock, mutation intents and unresolved-refresh fences; this method
+does not decide that a login is needed or retry an unknown grant.
 
 ## Make a change
 
