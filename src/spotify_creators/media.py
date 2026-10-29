@@ -94,8 +94,8 @@ def _send(target, artifact, path, before, *, offset, length, before_dispatch,
         if not 200<=response.status<300:
             raise ProviderError(response.status,'issued_upload_refused')
         return {'status':response.status,'bytes':sent,'sha256':digest.hexdigest(),'etag':response.getheader('ETag')}
-    except (OSError,TimeoutError,http.client.HTTPException) as exc:
-        raise OutcomeUnknown('The original media upload needs reconciliation; it was not retried') from exc
+    except (OSError,TimeoutError,http.client.HTTPException):
+        raise OutcomeUnknown('The original media upload needs reconciliation; it was not retried') from None
     finally:
         connection.close()
 
@@ -164,8 +164,8 @@ def upload_multipart(signed_parts, artifact, *, before_dispatch, after_part,
                    'sha256':result['sha256'], 'offset':offset, 'status':result['status']}
         try:
             after_part(receipt)
-        except Exception as exc:
-            raise OutcomeUnknown('Original uploaded part lacks durable native receipt; no replay was made') from exc
+        except Exception:
+            raise OutcomeUnknown('Original uploaded part lacks durable native receipt; no replay was made') from None
         receipts.append(receipt)
     if whole_digest.hexdigest() != artifact['sha256']:
         raise OutcomeUnknown('Original multipart bytes changed; processing was not committed')

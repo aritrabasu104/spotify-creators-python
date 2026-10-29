@@ -4,13 +4,13 @@ from .auth import AuthClient, OAuthAttempt, Session
 from .catalog import INVENTORY, OPERATIONS
 from .client import GraphError, SpotifyClient
 from .endpoints import ENDPOINTS
-from .http import HttpTransport, OutcomeUnknown, ProviderError
+from .http import HttpTransport, OutcomeUnknown, ProviderError, TransportUnavailable
 from .media import UploadTarget, upload_exact, upload_multipart
 from .tasks import CreatorsTasks
 from .protocol import web_episode_id
 from .concurrency import DEFAULT_MAX_PARALLEL_UPLOADS, SessionManager, UploadPool, UploadResult
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 
 class Client(SpotifyClient):
@@ -55,6 +55,6 @@ class Client(SpotifyClient):
 
 
 __all__ = ["Client", "SpotifyClient", "CreatorsTasks", "Session", "OAuthAttempt",
-           "AuthClient", "HttpTransport", "ProviderError", "GraphError", "OutcomeUnknown",
+           "AuthClient", "HttpTransport", "ProviderError", "GraphError", "OutcomeUnknown", "TransportUnavailable",
            "UploadTarget", "upload_exact", "upload_multipart", "ENDPOINTS", "OPERATIONS",
            "UploadPool", "UploadResult", "SessionManager", "DEFAULT_MAX_PARALLEL_UPLOADS"]

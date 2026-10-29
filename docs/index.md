@@ -9,7 +9,7 @@ An independent Python library for authorized Spotify Creators accounts.
 Install it from GitHub and import `Client` from `spotify_creators`.
 
 ```sh
-python -m pip install "spotify-creators-client @ git+https://github.com/aritrabasu104/spotify-creators-python.git@v0.2.0"
+python -m pip install "spotify-creators-client @ git+https://github.com/aritrabasu104/spotify-creators-python.git@v0.2.1"
 ```
 
 ```python

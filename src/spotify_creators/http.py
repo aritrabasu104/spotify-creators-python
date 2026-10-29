@@ -33,6 +33,10 @@ class ProviderError(RuntimeError):
         super().__init__(f"Spotify HTTP {status}: {code}")
 
 
+class TransportUnavailable(OSError):
+    """A read failed without exposing transport or credential-bearing URL text."""
+
+
 class OutcomeUnknown(RuntimeError):
     """An admitted mutation was dispatched but its result is unresolved."""
 
@@ -66,7 +70,7 @@ class HttpTransport:
             raise ValueError("Request left the recovered Spotify HTTPS API origins")
         if body is not None and form is not None:
             raise ValueError("Select one actual body encoding")
-        selected = {"User-Agent": "spotify-creators-client/0.2.0", "Accept": "application/json"}
+        selected = {"User-Agent": "spotify-creators-client/0.2.1", "Accept": "application/json"}
         data = None
         if body is not None:
             data = json.dumps(body, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode()
@@ -98,10 +102,10 @@ class HttpTransport:
                              if not 200<=response.code<300 else None)
                 return Response(response.code, value, {k.lower(): v for k, v in response.headers.items()
                                                        if k.lower() in {"content-type", "retry-after"}})
-        except (URLError, TimeoutError, ConnectionError, OSError, HTTPException) as exc:
+        except (URLError, TimeoutError, ConnectionError, OSError, HTTPException):
             if mutation:
-                raise OutcomeUnknown("Original Spotify mutation needs reconciliation; no replay was made") from exc
-            raise
+                raise OutcomeUnknown("Original Spotify mutation needs reconciliation; no replay was made") from None
+            raise TransportUnavailable("Spotify read transport is temporarily unavailable") from None
 
 
 def require_success(response):

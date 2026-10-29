@@ -16,7 +16,7 @@ access to these interfaces. Endpoint compatibility may change.
 ## Install
 
 ```sh
-python -m pip install "spotify-creators-client @ git+https://github.com/aritrabasu104/spotify-creators-python.git@v0.2.0"
+python -m pip install "spotify-creators-client @ git+https://github.com/aritrabasu104/spotify-creators-python.git@v0.2.1"
 ```
 
 This installs from GitHub. The project is not currently published on PyPI.

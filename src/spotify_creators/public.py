@@ -18,7 +18,7 @@ def _public_get(url, *, maximum, opener=None):
                 or route.hostname == "open.spotify.com" and
                 re.fullmatch(r"/episode/[A-Za-z0-9]{22}", route.path))):
         raise ValueError("Use an exact public Spotify episode or hosted RSS URL")
-    request = Request(url, headers={"User-Agent": "spotify-creators-client/0.1.0",
+    request = Request(url, headers={"User-Agent": "spotify-creators-client/0.2.1",
                                     "Accept-Encoding": "identity"})
     with (opener or build_opener(ProxyHandler({}), NoRedirect())).open(request, timeout=30) as response:
         if response.code != 200:
