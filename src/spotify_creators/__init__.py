@@ -8,8 +8,9 @@ from .http import HttpTransport, OutcomeUnknown, ProviderError
 from .media import UploadTarget, upload_exact, upload_multipart
 from .tasks import CreatorsTasks
 from .protocol import web_episode_id
+from .concurrency import DEFAULT_MAX_PARALLEL_UPLOADS, SessionManager, UploadPool, UploadResult
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 
 class Client(SpotifyClient):
@@ -20,11 +21,17 @@ class Client(SpotifyClient):
     """
 
     def __init__(self, session, *, expected_email=None, transport=None,
-                 session_provider=None, inventory=None):
+                 session_provider=None, inventory=None,
+                 max_parallel_uploads=DEFAULT_MAX_PARALLEL_UPLOADS):
         super().__init__(transport or HttpTransport(), session,
                          INVENTORY if inventory is None else inventory,
                          expected_email=expected_email, session_provider=session_provider)
         self.tasks = CreatorsTasks(self)
+        self.upload_pool = UploadPool(max_parallel_uploads)
+
+    def run_uploads(self, operation, items):
+        """Run independent transfers/tasks, ten at a time by default."""
+        return self.upload_pool.run(operation, items)
 
     def get_show(self, show_id):
         """Read show metadata using its Spotify base62 ID."""
@@ -49,4 +56,5 @@ class Client(SpotifyClient):
 
 __all__ = ["Client", "SpotifyClient", "CreatorsTasks", "Session", "OAuthAttempt",
            "AuthClient", "HttpTransport", "ProviderError", "GraphError", "OutcomeUnknown",
-           "UploadTarget", "upload_exact", "upload_multipart", "ENDPOINTS", "OPERATIONS"]
+           "UploadTarget", "upload_exact", "upload_multipart", "ENDPOINTS", "OPERATIONS",
+           "UploadPool", "UploadResult", "SessionManager", "DEFAULT_MAX_PARALLEL_UPLOADS"]

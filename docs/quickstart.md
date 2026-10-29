@@ -10,7 +10,7 @@ title: Quick start
 Use Python 3.11 or newer and Git:
 
 ```sh
-python -m pip install "spotify-creators-client @ git+https://github.com/aritrabasu104/spotify-creators-python.git@v0.1.0"
+python -m pip install "spotify-creators-client @ git+https://github.com/aritrabasu104/spotify-creators-python.git@v0.2.0"
 python -m spotify_creators --version
 ```
 

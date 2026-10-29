@@ -2,7 +2,7 @@
 
 [Documentation](https://aritrabasu104.github.io/spotify-creators-python/) ·
 [Quick start](docs/quickstart.md) · [Authentication](docs/authentication.md) ·
-[API reference](docs/reference.md) · [Examples](examples/)
+[API reference](docs/reference.md) · [Concurrency](docs/concurrency.md) · [Examples](examples/)
 
 A small, independent Python client for Spotify Creators: account verification,
 shows, episodes, publishing and scheduling, media transfers, artwork, clips and
@@ -16,7 +16,7 @@ access to these interfaces. Endpoint compatibility may change.
 ## Install
 
 ```sh
-python -m pip install "spotify-creators-client @ git+https://github.com/aritrabasu104/spotify-creators-python.git@v0.1.0"
+python -m pip install "spotify-creators-client @ git+https://github.com/aritrabasu104/spotify-creators-python.git@v0.2.0"
 ```
 
 This installs from GitHub. The project is not currently published on PyPI.
@@ -74,6 +74,11 @@ It does not silently retry writes, follow redirects, or forward account
 credentials to issued upload URLs.
 
 ## What's included
+
+Independent uploads run **10 at a time by default** through
+`client.run_uploads(operation, items)`. `SessionManager` reuses a valid session
+and serializes login/refresh independently of transfers. See the
+[concurrency guide](docs/concurrency.md) for examples and cross-process ownership.
 
 | Area | Entry points |
 | --- | --- |

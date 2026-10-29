@@ -73,7 +73,8 @@ episode media uploads.
 
 ## Failure handling
 
-- `ProviderError`: HTTP failure; `status` and `code` are safe summary fields.
+- `ProviderError`: HTTP failure; `status`, `code` and numeric `retry_after`
+  expose safe summary fields. A 429 response is not automatically retried.
 - `GraphError`: GraphQL application errors, even when HTTP returned 200.
 - `OutcomeUnknown`: a mutation or transfer may have been accepted; reconcile
   its original identifier and intent before any replacement or retry.

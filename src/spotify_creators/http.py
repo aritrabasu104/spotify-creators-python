@@ -3,7 +3,9 @@
 from dataclasses import dataclass, field
 from http.client import HTTPException
 import json
+import math
 import re
+import threading
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlsplit
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
@@ -24,9 +26,10 @@ class Response:
 
 
 class ProviderError(RuntimeError):
-    def __init__(self, status, code, details=None):
+    def __init__(self, status, code, details=None, *, retry_after=None):
         self.status, self.code = status, code
         self.details=details
+        self.retry_after = retry_after
         super().__init__(f"Spotify HTTP {status}: {code}")
 
 
@@ -44,7 +47,17 @@ class HttpTransport:
         if not 0 < timeout <= 60 or not 0 < max_response <= 16 * 1024 * 1024:
             raise ValueError("Invalid Spotify network budget")
         self.timeout, self.max_response = timeout, max_response
-        self.opener = build_opener(ProxyHandler({}), NoRedirect())
+        self._local = threading.local()
+
+    @property
+    def opener(self):
+        if not hasattr(self._local, "opener"):
+            self._local.opener = build_opener(ProxyHandler({}), NoRedirect())
+        return self._local.opener
+
+    @opener.setter
+    def opener(self, value):
+        self._local.opener = value
 
     def execute(self, method, url, *, body=None, form=None, headers=None, mutation=False):
         parsed = urlsplit(url)
@@ -53,7 +66,7 @@ class HttpTransport:
             raise ValueError("Request left the recovered Spotify HTTPS API origins")
         if body is not None and form is not None:
             raise ValueError("Select one actual body encoding")
-        selected = {"User-Agent": "spotify-creators-client/0.1.0", "Accept": "application/json"}
+        selected = {"User-Agent": "spotify-creators-client/0.2.0", "Accept": "application/json"}
         data = None
         if body is not None:
             data = json.dumps(body, ensure_ascii=False, allow_nan=False, separators=(",", ":")).encode()
@@ -98,5 +111,12 @@ def require_success(response):
         code = value.get("code") if isinstance(value, dict) else value
         if not isinstance(code, str) or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,96}", code):
             code = "provider_error"
-        raise ProviderError(response.status, code, data)
+        retry_after = None
+        try:
+            seconds = float(response.headers.get('retry-after', ''))
+            if math.isfinite(seconds) and seconds >= 0:
+                retry_after = seconds
+        except (TypeError, ValueError):
+            pass
+        raise ProviderError(response.status, code, data, retry_after=retry_after)
     return response.data

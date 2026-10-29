@@ -3,6 +3,7 @@
 import hashlib
 import json
 import re
+import threading
 from urllib.parse import quote
 
 from .auth import AuthClient
@@ -28,22 +29,34 @@ class SpotifyClient:
         self.auth = AuthClient(transport, expected_email=expected_email)
         self._verified = False
         self.session_provider = session_provider
+        self._state_lock = threading.RLock()
+        self._verified_session = None
 
     def _ensure_session(self):
         if self.session_provider is not None:
-            self.session = self.session_provider(self.session)
+            session = self.session_provider(self.session)
+            with self._state_lock:
+                self.session = session
+            return session
+        return self.session
 
     def verify_account(self):
-        self._ensure_session()
-        profile = self.auth.verify(self.session)
-        self._verified = True
-        return profile
+        session = self._ensure_session()
+        with self._state_lock:
+            profile = self.auth.verify(session)
+            self._verified = True
+            self._verified_session = session
+            return profile
 
-    def _admit(self, intent, callback):
+    def _admit(self, intent, callback, session):
         if not self._verified:
             raise ValueError("Verify the actual original Spotify account before any mutation")
         if not callable(callback):
             raise ValueError("The caller must reserve this exact side effect")
+        with self._state_lock:
+            if self._verified_session != session:
+                self.auth.verify(session)
+                self._verified_session = session
         callback(intent)
 
     def rest(self, identity, *values, query=None, body=None, before_dispatch=None):
@@ -68,12 +81,12 @@ class SpotifyClient:
         if combined:
             url += "?" + combined
         payload = rest_payload(body) if body is not None else None
-        self._ensure_session()
-        authorization = self.session.bearer()
+        session = self._ensure_session()
+        authorization = session.bearer()
         mutation = method not in {"GET", "HEAD"} or ".sign" in identity
         if mutation:
             self._admit({"operation": identity, "method": method, "request_sha256": fingerprint({
-                "url": url, "body": payload})}, before_dispatch)
+                "url": url, "body": payload})}, before_dispatch, session)
         response = self.transport.execute(method, url, body=payload,
                                          headers={**authorization, "Anchor-API-Version": "3.8.3",
                                                   "Anchor-Client-Type": "web"}, mutation=mutation)
@@ -87,12 +100,12 @@ class SpotifyClient:
             raise ValueError("Select the exact recovered GraphQL operation version and client")
         row = rows[0]
         request = persisted_query(row, variables, creator_client=creator_client)
-        self._ensure_session()
-        authorization = self.session.bearer()
+        session = self._ensure_session()
+        authorization = session.bearer()
         mutation = row["kind"] == "mutation"
         if mutation:
             self._admit({"operation": name, "method": "POST", "request_sha256": fingerprint(request.body),
-                         "operation_hash": row["sha256"], "creator_client": creator_client}, before_dispatch)
+                         "operation_hash": row["sha256"], "creator_client": creator_client}, before_dispatch, session)
         response = self.transport.execute(request.method, request.url, body=request.body,
                                          headers={**request.headers, **authorization}, mutation=mutation)
         value = require_success(response)
